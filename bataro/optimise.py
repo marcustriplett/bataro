@@ -18,7 +18,6 @@ def backtracking_newton(g, y, x, prior_mean, cov_inv, backtrack_alpha=0.25, back
 	'''
 
 	def negloglik(g, theta):
-		# pre_activ = jnp.array([jnp.sum(g[point]) - theta for point in x]) # slow for loop
 		pre_activ = _sum_and_subtract_vmap(g, x, theta)
 		activ = sigmoid(pre_activ)
 		return -jnp.sum(y * jnp.log(activ) + (1 - y) * jnp.log(1 - activ + 1e-5)) - jnp.sum(jnp.log(g))
@@ -82,5 +81,4 @@ def _get_derivs(fn):
 def _sum_and_subtract(g, point, theta):
 	g_pad = jnp.r_[g, jnp.array([0.])] # pad g and x to allow vmap ## add 0 at the end to sop up padded terms
 	return jnp.sum(g_pad[point]) - theta
-	# return jnp.sum(g[point]) - theta
 _sum_and_subtract_vmap = jit(vmap(_sum_and_subtract, (None, 0, None)))

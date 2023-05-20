@@ -13,9 +13,6 @@ from mean_functions import exponential_mean_fn_vmap, exponential_mean_fn_deriv_v
 from optimise import backtracking_newton
 
 class Model:
-	'''Some of the matrix operations for the Newton steps can be sped up.
-	'''
-	# def __init__(self, kernel, mean_fn_theta=5., mean_fn_I_max=70., mean_fn_sigma=1e2):
 	def __init__(self, kernel, mean_fn_phi=1.25e-1, mean_fn_sigma=3e2):
 		'''Arg kernel should be unscaled.
 		'''
@@ -28,12 +25,6 @@ class Model:
 
 	def fit(self, x, y, grid, marginal_var=1e-5, newton_steps=20, lr_theta=1e-2, init_theta=5., max_backtrack_iters=10):
 		'''Run Laplace EM for the GP Bernoulli model.
-
-			Args: 
-				grid: unique stimulus locations
-				y: binary responses
-				x: list of indices of grid stimulated on each trial
-
 		'''
 
 		self.D = grid.shape[0]
@@ -48,7 +39,7 @@ class Model:
 
 		g = _init_gp_device_array(self.D)
 
-		# Pad x with dummary value to ensure inputs are of equal lengths (i.e., each stim hits J locations, but J-1 could be dummies)
+		# Pad x with dummy value to ensure inputs are of equal lengths (i.e., each stim hits J locations, but J-1 could be dummies)
 		# This speeds up JIT compilation
 		maxlen = np.max([len(_x) for _x in x])
 		x_pad = jnp.array([np.r_[_x, len(g) * np.ones(maxlen - len(_x))] for _x in x]).astype(int)
@@ -87,8 +78,6 @@ class Model:
 class Models:
 	''' Collect models into single object for calibration.
 	'''
-
-	# def __init__(self, N, kernel, neuron_locations, mean_fn_theta=5., mean_fn_I_max=70., mean_fn_sigma=1e2):
 	def __init__(self, N, kernel, neuron_locations, mean_fn_phi=1.25e-1, mean_fn_sigma=3e2):
 		self.N = N
 		self.mean_fn_phi = mean_fn_phi
@@ -118,12 +107,7 @@ class Models:
 		return self.grids, self.amplitudes, self.lengthscales, self.predictive_factors, self.thetas, self.neuron_locations,\
 		self.mean_fn_phi, self.mean_fn_sigma
 
-	# def _unpack(self):
-	# 	return self.grids, self.amplitudes, self.lengthscales, self.predictive_factors, self.thetas, self.neuron_locations,\
-	# 	self.mean_fn_theta, self.mean_fn_I_max, self.mean_fn_sigma
-
 # Primary functions
-
 def optimise_stimulus(target_neurons, models, learning_rate=3e1, iters=100, n_inits=5, init_spread=5, I_max=70.):
 	N = models.N
 	target = np.zeros(N)
@@ -186,7 +170,7 @@ _rbf_kernel_vmap = jit(vmap(vmap(_rbf_kernel, in_axes=(0, None, None, None)), in
 
 @jit
 def _rbf_gradient_ensemble(x_test, grid, amplitude, lengthscale):
-	## OPPORTUNITY TO REDUCE COMPILATION TIME HERE
+	# Note: opportunity to reduce compilation time here
 	N, D = grid.shape
 	J = x_test.shape[0]
 	Lambda = jnp.diag(1/jnp.array(lengthscale)**2)

@@ -1,8 +1,6 @@
 import numpy as np
 from sklearn.gaussian_process.kernels import RBF
 from scipy.linalg import cholesky
-# from ipywidgets import interact, interactive, fixed, interact_manual
-# import ipywidgets as widgets
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from functools import reduce
